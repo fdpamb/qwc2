@@ -162,9 +162,9 @@ function getLayerTree(layer, resultLayers, visibleLayers, printLayers, level, co
 
         // layer
         layerEntry.geometryType = layer.$_geometryType;
-        if (layer.$_visibilityChecked !== undefined) {
+        if (layer.$ !== undefined && layer.$_visibilityChecked !== undefined) {
             layerEntry.visibility = layer.$_visibilityChecked === '1';
-        } else {
+        } else if (layer.$ !== undefined && layer.$_visible !== undefined) {
             layerEntry.visibility = layer.$_visible === '1';
         }
         if (layerEntry.visibility) {
@@ -247,9 +247,9 @@ function getLayerTree(layer, resultLayers, visibleLayers, printLayers, level, co
     } else {
         // group
         layerEntry.mutuallyExclusive = layer.$_mutuallyExclusive === '1';
-        if (layer.$_visibilityChecked !== undefined) {
+        if (layer.$ !== undefined && layer.$_visibilityChecked !== undefined) {
             layerEntry.visibility = layer.$_visibilityChecked === '1';
-        } else {
+        } else if (layer.$ !== undefined && layer.$_visible !== undefined) {
             layerEntry.visibility = layer.$_visible === '1';
         }
         layerEntry.sublayers = [];
@@ -288,7 +288,7 @@ function getTheme(config, configItem, result, resultItem, proxy) {
     parsedUrl.search = '';
     parsedUrl.query.SERVICE = "WMS";
     parsedUrl.query.VERSION = "1.3.0";
-    parsedUrl.query.REQUEST = "GetProjectSettings";
+    parsedUrl.query.REQUEST = "GetCapabilities";
     const getCapabilitiesUrl = urlUtil.format(parsedUrl);
 
     return new Promise((resolve, reject) => {
@@ -493,7 +493,11 @@ function getTheme(config, configItem, result, resultItem, proxy) {
             if (configItem.legendUrl) {
                 resultItem.legendUrl = configItem.legendUrl;
             } else {
+              if (capabilities.Capability.Request.GetLegendGraphic !== undefined) {
                 resultItem.legendUrl = capabilities.Capability.Request.GetLegendGraphic.DCPType.HTTP.Get.OnlineResource.$_href.replace(/\?$/, "") + "?" + (configItem.extraLegendParameters ? configItem.extraLegendParameters : '');
+              } else {
+                resultItem.legendUrl = capabilities.Capability.Request.GetCapabilities.DCPType.HTTP.Get.OnlineResource.$_href.replace(/\?$/, "") + "?" + (configItem.extraLegendParameters ? configItem.extraLegendParameters : '');
+              }
             }
             if (configItem.featureInfoUrl) {
                 resultItem.featureInfoUrl = configItem.featureInfoUrl;
@@ -503,7 +507,11 @@ function getTheme(config, configItem, result, resultItem, proxy) {
             if (configItem.printUrl) {
                 resultItem.printUrl = configItem.printUrl;
             } else {
+              if (capabilities.Capability.Request.GetPrint !== undefined) {
                 resultItem.printUrl = capabilities.Capability.Request.GetPrint.DCPType.HTTP.Get.OnlineResource.$_href.replace(/\?$/, "") + "?";
+              } else {
+                resultItem.printUrl = capabilities.Capability.Request.GetCapabilities.DCPType.HTTP.Get.OnlineResource.$_href.replace(/\?$/, "") + "?";
+              }
             }
             if (configItem.printLabelForSearchResult) {
                 resultItem.printLabelForSearchResult = configItem.printLabelForSearchResult;
